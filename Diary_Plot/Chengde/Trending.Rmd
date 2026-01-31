@@ -1,0 +1,71 @@
+---
+title: "GDP"
+author: "Zongyi Liu"
+date: "2024-06-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+
+
+```{r}
+Zaozhuang<-read_excel("Zaozhuang.xlsx")[, 1:3]
+Chengde<-read_excel("Chengde.xlsx")[, 1:3]
+```
+
+
+```{r pressure, echo=FALSE}
+colnames(Zaozhuang) <- c("Year", "GDP_Total", "GDP_Per_Capita")
+colnames(Chengde) <- c("Year", "GDP_Total", "GDP_Per_Capita")
+```
+
+
+
+```{r pressure, echo=FALSE}
+# Add a column to identify the source
+Zaozhuang$source <- "Zaozhuang"
+Chengde$source <- "Chengde"
+Ningbo$source <- "Ningbo"
+Yantai$source <- "Yantai"
+
+combined_df <- bind_rows(Zaozhuang, Chengde, Ningbo, Yantai)
+```
+
+```{r}
+combined_long <- combined_df %>%
+  pivot_longer(cols = c(GDP_Total, GDP_Per_Capita), names_to = "Metric", values_to = "Value")
+
+# Create the bar plot for GDP_Total
+gdp_total_plot <- ggplot(subset(combined_long, Metric == "GDP_Total"), aes(x = factor(Year), y = Value, fill = source)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "GDP Total Change Over Years",
+       x = "Year",
+       y = "GDP Total") +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 55, hjust = 1))
+
+# Create the bar plot for GDP_Per_Capita
+gdp_per_capita_plot <- ggplot(subset(combined_long, Metric == "GDP_Per_Capita"), aes(x = factor(Year), y = Value, fill = source)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "GDP Per Capita Change Over Years",
+       x = "Year",
+       y = "GDP Per Capita") +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 55, hjust = 1))
+
+ggsave("gdp_total_plot.png", gdp_total_plot, width = 15, height = 8)
+ggsave("gdp_per_capita_plot.png", gdp_per_capita_plot, width = 15, height = 8)
+
+# Display the plots
+print(gdp_total_plot)
+print(gdp_per_capita_plot)
+```
